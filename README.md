@@ -12,7 +12,8 @@ npm install
 
 
 - **dayjs**
--  **dotenv**
+- **dotenv**
+- **axios**
 
 
 # DNSSHE 續期說明
