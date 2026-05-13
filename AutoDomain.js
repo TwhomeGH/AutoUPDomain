@@ -19,6 +19,18 @@ function formatSubdomainExpiry(subdomains) {
 
     let FormattedDate = expiresAt.format('YYYY-MM-DD A HH:mm:ss');
 
+    if (remainingDays < 170) {
+        FormattedDate = `⚠️ ${FormattedDate}`;
+        renewSubdomain(sd.id).then((data) => {
+            console.log(`✅ 已自動續期 ${sd.full_domain}，新的到期時間: ${data.expires_at}`);
+            sendBarkNotification("子網域已續期", `已進入續期區間剩 ${remainingDays} 天內\n${sd.full_domain} 已成功續期，新的到期時間: ${data.expires_at}`, "https://www.dnshe.com/favicon.ico");
+        }).catch((error) => {
+            console.error(`❌ 自動續期 ${sd.full_domain} 失敗:`, error.message);
+            sendBarkNotification("子網域續期失敗", `已進入續期區間剩 ${remainingDays} 天內\n${sd.full_domain} 續期失敗，請手動檢查`, "https://www.dnshe.com/favicon.ico");
+        });
+
+    }
+
     return `${sd.full_domain} 剩餘 ${remainingDays} 天 - ${FormattedDate}`;
   });
 }
