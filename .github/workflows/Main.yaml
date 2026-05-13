@@ -12,7 +12,13 @@ on:
 jobs:
     build:
         runs-on: ubuntu-latest
+        env:
+          # 對應 GitHub Secrets
+          API_KEY: ${{ secrets.API_KEY }}
+          API_SECRET: ${{ secrets.API_SECRET }}
+          BARK_API: ${{ secrets.BARK_API }}
 
+          
         steps:
         # 1. 檢出程式碼
         - name: Checkout repository
