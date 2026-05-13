@@ -1,0 +1,33 @@
+name: Node.js 自動檢查 Workflow
+
+on:
+    # 手動觸發
+    workflow_dispatch:
+
+    # 定期觸發：每兩個月一次
+    schedule:
+        # 這裡設定為每兩個月的第一天 00:00 UTC 執行
+        - cron: '0 0 1 */2 *'
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+        # 1. 檢出程式碼
+        - name: Checkout repository
+          uses: actions/checkout@v6.0.2
+
+        # 2. 設定 Node.js 24
+        - name: Setup Node.js
+          uses: actions/setup-node@v6.4.0
+          with:
+            node-version: '24'
+
+        # 3. 安裝依賴
+        - name: Install dependencies
+          run: npm install
+
+        # 4. 執行 main script
+        - name: Run main script
+          run: npm run main
