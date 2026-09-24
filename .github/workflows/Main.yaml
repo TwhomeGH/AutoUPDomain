@@ -4,11 +4,6 @@ on:
     # 手動觸發
     workflow_dispatch:
 
-    # 定期觸發：每兩個月一次
-    schedule:
-        # 這裡設定為每兩個月的第一天 00:00 UTC 執行
-        - cron: '0 0 1 */2 *'
-
 jobs:
     build:
         runs-on: ubuntu-latest

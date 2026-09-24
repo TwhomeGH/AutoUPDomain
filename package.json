@@ -1,19 +1,30 @@
 {
   "name": "autoupdomain",
   "version": "1.0.0",
-  "description": "",
-  "main": "AutoDomain.js",
+  "description": "本地常駐網域續期工具，支援系統托盤、Web UI 與系統通知",
+  "main": "src/main.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "main": "node AutoDomain.js"
+    "start": "node src/main.js",
+    "start:headless": "node src/main.js --no-tray --no-open",
+    "main": "node AutoDomain.js",
+    "test": "node --test",
+    "demo": "node scripts/demo.mjs"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
-    "axios": "^1.16.0",
-    "dayjs": "^1.11.20",
-    "dotenv": "^17.4.2"
+    "dotenv": "^17.4.2",
+    "systray2": "2.1.4",
+    "node-notifier": "10.0.1"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "overrides": {
+    "node-notifier": {
+      "uuid": "^11.1.1"
+    }
   }
 }
