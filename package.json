@@ -9,15 +9,17 @@
     "start:headless": "node src/main.js --no-tray --no-open",
     "main": "node AutoDomain.js",
     "test": "node --test",
-    "demo": "node scripts/demo.mjs"
+    "demo": "node scripts/demo.mjs",
+    "format": "prettier --write \"src/**/*.js\" \"web/**/*.{js,html,css}\" \"test/**/*.js\" \"scripts/**/*.mjs\" \"native/*.js\" AutoDomain.js package.json .prettierrc.json",
+    "format:check": "prettier --check \"src/**/*.js\" \"web/**/*.{js,html,css}\" \"test/**/*.js\" \"scripts/**/*.mjs\" \"native/*.js\" AutoDomain.js package.json .prettierrc.json"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "dependencies": {
     "dotenv": "^17.4.2",
-    "systray2": "2.1.4",
-    "node-notifier": "10.0.1"
+    "node-notifier": "10.0.1",
+    "systray2": "2.1.4"
   },
   "engines": {
     "node": ">=22"
@@ -26,5 +28,8 @@
     "node-notifier": {
       "uuid": "^11.1.1"
     }
+  },
+  "devDependencies": {
+    "prettier": "3.9.9"
   }
 }
