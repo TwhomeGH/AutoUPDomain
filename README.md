@@ -44,7 +44,7 @@ sudo apt install libnotify-bin libsecret-tools libayatana-appindicator3-1
 npm run start:headless
 ```
 
-只啟動服務，終端會印出含存取 token 的 Web UI 網址，使用瀏覽器開啟。Ctrl+C 結束；如需長期執行，可自行交由使用者層級的服務管理工具管理。
+只啟動服務，終端會印出含本機 Web UI 存取憑證的網址，使用瀏覽器開啟。Ctrl+C 結束；如需長期執行，可自行交由使用者層級的服務管理工具管理。
 
 預設只監聽 `127.0.0.1:17843`。可用 `AUTOUPDOMAIN_PORT` 更改連接埠（`0` 自動分配），`AUTOUPDOMAIN_DATA_DIR` 指定獨立資料目錄。登入自啟動使用預設資料目錄與連接埠；自訂環境請自行管理啟動命令。無托盤模式不提供面板的自啟動選項。
 
@@ -56,8 +56,8 @@ npm run start:headless
 - `state.json`：網域狀態、排程與最近 200 筆紀錄。
 - `service.log`：服務級啟動／執行錯誤，不記錄憑證。
 - Linux 需要 `secret-tool` 與已解鎖的登入金鑰圈；安全儲存不可用時會拒絕儲存密鑰，不降級成明文。
-- Web UI 使用每次啟動更新的 token，檢查 Host / Origin，API 不回傳已儲存的憑證。從托盤開啟可取得有效連結；請勿分享含 token 的網址。
-- 憑證欄位留白代表保留。Bark 網址同樣當作密鑰保存；停用 Bark 不會刪除網址。
+- 本機 Web UI 存取憑證只用來授權瀏覽器操作本地面板，每次服務啟動會重新產生。它與網域 API Key、API Secret、Bark 網址不同；更換它不會清除或修改這些設定。舊連結失效時，從托盤重新開啟即可，不需要重新填寫網域密鑰。請勿分享含此憑證的網址。
+- API Key、API Secret 與 Bark 網址欄位留白代表保留目前值。Web 儲存會將這些值加密寫入使用者資料目錄的 `settings.json`，不會修改或寫回專案 `.env`。重啟後仍會保留，並優先於 `.env`。停用 Bark 不會刪除網址。
 
 登入自啟動：Windows 使用 Startup 資料夾的 `AutoUPDomain.vbs`，Linux 使用 XDG autostart。移動專案或移除 Node.js 前，先停用自啟動；移動後可重新啟用。移除程式前亦應停用；通知註冊捷徑可自行刪除。
 
