@@ -79,6 +79,13 @@ test('local server requires token and same origin, serves UI, accepts authorized
       .status,
     200,
   );
+  service.log('info', '測試紀錄');
+  assert.equal(service.snapshot().history.length, 1);
+  assert.equal(
+    (await fetch(local.origin + '/api/logs/clear', { method: 'POST', headers, body: '{}' })).status,
+    200,
+  );
+  assert.equal(service.snapshot().history.length, 0);
   assert.equal(
     (
       await fetch(local.origin + '/api/settings', {

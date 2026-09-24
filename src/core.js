@@ -117,6 +117,11 @@ export class DomainService extends EventEmitter {
     this.state.history = this.state.history.slice(0, 200);
     this.emit('log', this.state.history[0]);
   }
+  /** 面板手動清理日誌：清空紀錄並寫回儲存，重啟後不會復原。 */
+  async clearHistory() {
+    this.state.history = [];
+    await this.persist();
+  }
   /** 通知失敗只寫入日誌，不將已成功的網域操作誤判為失敗。 */
   async publish(title, body, { isError = false } = {}) {
     if (this.config.notificationMode === 'errors-only' && !isError) {

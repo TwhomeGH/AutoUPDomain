@@ -35,7 +35,26 @@
       <section class="panel">
         <div class="heading">
           <h2>網域狀態</h2>
-          <div>
+          <div class="actions">
+            <div class="segmented" role="group" aria-label="網域顯示方式">
+              <button
+                type="button"
+                data-view="truncate"
+                aria-pressed="true"
+                title="只顯示網域前 12 個字"
+              >
+                截斷</button
+              ><button type="button" data-view="full" aria-pressed="false" title="顯示完整網域">
+                完整</button
+              ><button
+                type="button"
+                data-view="hidden"
+                aria-pressed="false"
+                title="直播模式：完全隱藏，改以固定編號顯示"
+              >
+                隱藏
+              </button>
+            </div>
             <button id="pause" class="secondary">暫停排程</button><button id="run">立即檢查</button>
           </div>
         </div>
@@ -45,7 +64,7 @@
             <thead>
               <tr>
                 <th>網域</th>
-                <th>剩餘天數</th>
+                <th class="days">剩餘天數</th>
                 <th>到期時間</th>
                 <th>檢查結果</th>
               </tr>
@@ -137,17 +156,26 @@
             <p class="hint">
               成功檢查後，依此間隔安排下一次；支援 1–90 天或 1–2160 小時。失敗時 1 小時後重試。
             </p>
-            <label
-              >通知時機<select name="notificationMode">
+            <div class="notification-setting">
+              <label for="notificationMode">通知時機</label>
+              <select
+                id="notificationMode"
+                name="notificationMode"
+                aria-describedby="notification-help"
+              >
                 <option value="important">重要結果（預設）</option>
                 <option value="all">所有結果（成功與錯誤）</option>
                 <option value="errors-only">僅錯誤</option>
-              </select></label
-            >
-            <p class="hint">
-              重要結果：手動檢查通知摘要；排程只通知續期、錯誤與恢復。所有結果：每輪都通知摘要。僅錯誤：手動與排程都只通知失敗或續期未確認。此設定同時套用系統通知與
-              Bark；測試通知不受通知時機限制。
-            </p>
+              </select>
+              <div id="notification-help" class="hint">
+                <ul class="notification-options">
+                  <li><strong>重要結果：</strong>手動通知摘要；排程通知續期、錯誤與恢復。</li>
+                  <li><strong>所有結果：</strong>每輪檢查都通知摘要。</li>
+                  <li><strong>僅錯誤：</strong>只通知失敗或續期未確認。</li>
+                </ul>
+                <p>同時套用系統通知與 Bark；測試通知不受此限制。</p>
+              </div>
+            </div>
             <label class="check"
               ><input name="nativeNotifications" type="checkbox" />系統通知（Windows /
               Linux）</label
@@ -202,7 +230,8 @@
               </select></label
             ><button id="log-pause" type="button" class="secondary" aria-pressed="false">
               暫停更新</button
-            ><button id="log-download" type="button" class="secondary">下載日誌</button>
+            ><button id="log-download" type="button" class="secondary">下載日誌</button
+            ><button id="log-clear" type="button" class="secondary">清除日誌</button>
           </div>
           <label class="check"
             ><input id="log-follow" type="checkbox" checked />自動捲動至最新</label

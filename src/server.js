@@ -81,6 +81,10 @@ export async function startServer({
         const failures = await testNotification();
         return reply(200, { ok: failures.length === 0, failures });
       }
+      if (req.url === '/api/logs/clear') {
+        await service.clearHistory();
+        return reply(200, { ok: true });
+      }
       return reply(404, { error: '找不到操作' });
     } catch (error) {
       reply(400, { error: error.message });

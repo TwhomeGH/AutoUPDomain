@@ -38,19 +38,68 @@ document.addEventListener('visibilitychange', () => {
 let state,
   initialized = false,
   busy = false;
-let logPaused = false,
+let domainView = 'truncate',
+  domainLabels = {},
+  nextDomainLabel = 1,
+  logPaused = false,
   logEntries = [],
   logFingerprint = '';
+// 網域顯示：截斷 / 完整 / 隱藏（直播模式）。三態互斥，由同一組分段控制切換。
+const DOMAIN_VIEW_KEY = 'autoupdomain-domain-view';
+const LEGACY_TRUNCATED_KEY = 'autoupdomain-domain-truncated';
+const LEGACY_LIVE_KEY = 'autoupdomain-domain-live-mode';
+const DOMAIN_LABELS_KEY = 'autoupdomain-domain-labels';
+function loadDomainPreferences() {
+  const view = localStorage.getItem(DOMAIN_VIEW_KEY);
+  if (view === 'truncate' || view === 'full' || view === 'hidden') domainView = view;
+  // 舊版是兩個獨立開關，轉換成等價的三態偏好。
+  else if (localStorage.getItem(LEGACY_LIVE_KEY) === 'true') domainView = 'hidden';
+  else if (localStorage.getItem(LEGACY_TRUNCATED_KEY) === 'false') domainView = 'full';
+  try {
+    domainLabels = JSON.parse(localStorage.getItem(DOMAIN_LABELS_KEY)) || {};
+  } catch {
+    domainLabels = {};
+  }
+  nextDomainLabel = Object.values(domainLabels).reduce((max, value) => Math.max(max, value), 0) + 1;
+}
+// 隱藏模式只顯示固定編號，避免畫面分享時洩漏網域；編號一旦指派即固定不變。
+function domainLabel(id) {
+  const key = String(id);
+  if (!(key in domainLabels)) {
+    domainLabels[key] = nextDomainLabel++;
+    localStorage.setItem(DOMAIN_LABELS_KEY, JSON.stringify(domainLabels));
+  }
+  return domainLabels[key];
+}
+function setDomainView(view) {
+  domainView = view;
+  localStorage.setItem(DOMAIN_VIEW_KEY, view);
+  render();
+}
+// 隱藏模式下把日誌中的完整網域換成編號，避免控制台洩漏名稱；長網域先替換以免被短網域截斷。
+function maskDomainNames(message) {
+  if (domainView !== 'hidden' || !state) return message;
+  let text = String(message);
+  for (const domain of [...state.domains].sort(
+    (a, b) => (b.full_domain || '').length - (a.full_domain || '').length,
+  ))
+    if (domain.full_domain)
+      text = text.split(domain.full_domain).join('網域 #' + domainLabel(domain.id));
+  return text;
+}
+loadDomainPreferences();
 const levelNames = { info: '資訊', success: '成功', warning: '警告', error: '錯誤' };
 // 暫停的是控制台畫面，服務仍繼續工作；恢復時載入最新的有限筆數紀錄。
 function renderLogs() {
   if (!logPaused) logEntries = state.history.slice().reverse();
   const filter = $('log-filter').value;
-  const visible = logEntries.filter(
-    (item) =>
-      filter === 'all' ||
-      (filter === 'issues' ? ['warning', 'error'].includes(item.level) : item.level === 'error'),
-  );
+  const visible = logEntries
+    .filter(
+      (item) =>
+        filter === 'all' ||
+        (filter === 'issues' ? ['warning', 'error'].includes(item.level) : item.level === 'error'),
+    )
+    .map((item) => ({ ...item, message: maskDomainNames(item.message) }));
   const fingerprint = JSON.stringify(visible);
   if (fingerprint !== logFingerprint) {
     const output = $('console-output'),
@@ -93,7 +142,12 @@ $('log-download').onclick = () => {
   const text = logEntries
     .map(
       (item) =>
-        '[' + item.time + '] [' + (levelNames[item.level] || item.level) + '] ' + item.message,
+        '[' +
+        item.time +
+        '] [' +
+        (levelNames[item.level] || item.level) +
+        '] ' +
+        maskDomainNames(item.message),
     )
     .join('\n');
   const url = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
@@ -102,6 +156,13 @@ $('log-download').onclick = () => {
   link.download = 'autoupdomain-log.txt';
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+$('log-clear').onclick = () => {
+  if (!confirm('確定要清除所有日誌嗎？清除後無法復原。')) return;
+  action(async () => {
+    await api('logs/clear', {});
+    message('日誌已清除');
+  });
 };
 let previousUnit = 'days';
 function setIntervalLimits() {
@@ -118,7 +179,26 @@ form.elements.intervalUnit.onchange = () => {
   previousUnit = unit;
   setIntervalLimits();
 };
-const date = (value) => (value ? new Date(value).toLocaleString() : '尚無紀錄');
+// 固定格式，避免 toLocaleString 隨系統地區變動，也讓摘要與表格一致。
+const date = (value) => {
+  if (!value) return '尚無紀錄';
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return String(value);
+  const pad = (number) => String(number).padStart(2, '0');
+  return (
+    parsed.getFullYear() +
+    '-' +
+    pad(parsed.getMonth() + 1) +
+    '-' +
+    pad(parsed.getDate()) +
+    ' ' +
+    pad(parsed.getHours()) +
+    ':' +
+    pad(parsed.getMinutes()) +
+    ':' +
+    pad(parsed.getSeconds())
+  );
+};
 const message = (text) => {
   $('message').textContent = text;
 };
@@ -155,19 +235,36 @@ function render() {
   $('run').disabled = state.running || busy;
   $('pause').disabled = state.running || busy;
   $('pause').textContent = state.settings.paused ? '恢復排程' : '暫停排程';
+  for (const button of document.querySelectorAll('[data-view]'))
+    button.setAttribute('aria-pressed', String(button.dataset.view === domainView));
   $('domains').replaceChildren();
   for (const domain of state.domains) {
     const tr = document.createElement('tr');
-    for (const value of [
-      domain.full_domain,
-      Math.floor((Date.parse(domain.expires_at) - Date.now()) / 86400000) + ' 天',
-      domain.expires_at,
-      domain.status,
-    ]) {
-      const td = document.createElement('td');
-      td.textContent = value;
-      tr.append(td);
-    }
+    const domainTd = document.createElement('td');
+    const fullDomain = domain.full_domain;
+    domainTd.textContent =
+      domainView === 'hidden'
+        ? '網域 #' + domainLabel(domain.id)
+        : domainView === 'truncate' && fullDomain.length > 12
+          ? fullDomain.substring(0, 12) + '...'
+          : fullDomain;
+    tr.append(domainTd);
+    const daysLeft = Math.floor((Date.parse(domain.expires_at) - Date.now()) / 86400000);
+    const daysTd = document.createElement('td');
+    daysTd.className = 'days';
+    if (daysLeft <= 7) daysTd.classList.add('days-critical');
+    else if (daysLeft <= state.settings.renewBeforeDays) daysTd.classList.add('days-warning');
+    daysTd.textContent = daysLeft + ' 天';
+    tr.append(daysTd);
+    const expiryTd = document.createElement('td');
+    expiryTd.textContent = date(domain.expires_at);
+    tr.append(expiryTd);
+    const statusTd = document.createElement('td');
+    const badge = document.createElement('span');
+    badge.className = 'status ' + (domain.status === '正常' ? 'status-ok' : 'status-warn');
+    badge.textContent = domain.status;
+    statusTd.append(badge);
+    tr.append(statusTd);
     $('domains').append(tr);
   }
   $('empty').hidden = state.domains.length > 0;
@@ -226,6 +323,8 @@ $('pause').onclick = () =>
     await api('settings', { paused: !state.settings.paused });
     message('排程設定已更新');
   });
+for (const button of document.querySelectorAll('[data-view]'))
+  button.onclick = () => setDomainView(button.dataset.view);
 $('test').onclick = () =>
   action(async () => {
     const result = await api('notification-test', {});

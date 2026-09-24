@@ -3,7 +3,7 @@
   --text: #192e32;
   --page: #f1f5f3;
   --accent: #257360;
-  --muted: #637775;
+  --muted: #556763;
   --badge: #dcebe4;
   --badge-text: #205944;
   --surface: #fff;
@@ -22,7 +22,11 @@
   --message: #e4eee7;
   --history: #c8dcd0;
   --warning: #cd8668;
-  --time: #71817a;
+  --warn-text: #a15c2e;
+  --success: #1f7d4f;
+  --time: #5f7069;
+  --warn-badge: #f6e3d5;
+  --warn-badge-text: #8a4b2a;
 }
 :root[data-theme='dark'] {
   color-scheme: dark;
@@ -48,7 +52,11 @@
   --message: #263f30;
   --history: #507d62;
   --warning: #e8ad87;
+  --warn-text: #e8ad87;
+  --success: #86d9a4;
   --time: #a0b6a8;
+  --warn-badge: #46331f;
+  --warn-badge-text: #f0c19c;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']):not([data-theme='dark']) {
@@ -138,7 +146,7 @@ p {
 }
 .summary {
   display: grid;
-  grid-template-columns: 1fr 1fr 0.6fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 16px;
   margin: 24px 0;
 }
@@ -194,6 +202,30 @@ button:disabled {
 .secondary:hover {
   background: var(--secondary-hover);
 }
+.segmented {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 9px;
+  background: var(--secondary);
+}
+.segmented button {
+  background: transparent;
+  color: var(--secondary-text);
+  border-radius: 7px;
+  padding: 8px 14px;
+  font-size: 13px;
+}
+.segmented button:hover {
+  background: var(--secondary-hover);
+}
+.segmented button[aria-pressed='true'] {
+  background: var(--primary);
+  color: var(--primary-text);
+}
+.segmented button[aria-pressed='true']:hover {
+  background: var(--primary-hover);
+}
 label {
   display: block;
   font-size: 13px;
@@ -245,6 +277,32 @@ td {
 th {
   color: var(--muted);
   font-weight: 500;
+}
+.days {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.days-critical {
+  color: var(--error);
+  font-weight: 600;
+}
+.days-warning {
+  color: var(--warn-text);
+  font-weight: 600;
+}
+.status {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  white-space: nowrap;
+  background: var(--badge);
+  color: var(--badge-text);
+}
+.status-warn {
+  background: var(--warn-badge);
+  color: var(--warn-badge-text);
 }
 .error {
   color: var(--error);
@@ -449,8 +507,11 @@ select:focus-visible {
   color: var(--accent);
   margin-right: 8px;
 }
+#history li[data-level='success'] .log-level {
+  color: var(--success);
+}
 #history li[data-level='warning'] .log-level {
-  color: var(--warning);
+  color: var(--warn-text);
 }
 #history li[data-level='error'] .log-level {
   color: var(--error);
@@ -468,4 +529,29 @@ select:focus-visible {
   .fields {
     grid-template-columns: 1fr;
   }
+}
+
+/* 通知時機與其他設定欄位對齊，說明分行以便在窄螢幕閱讀。 */
+.notification-setting {
+  margin: 20px 0;
+}
+.notification-setting select {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin: 7px 0 10px;
+  padding: 11px;
+  background: var(--input);
+  font-size: 13px;
+}
+.notification-options {
+  margin: 0;
+  padding-left: 18px;
+  line-height: 1.7;
+}
+.notification-options li + li {
+  margin-top: 4px;
+}
+.notification-setting .hint p {
+  margin: 8px 0 0;
 }
